@@ -3,19 +3,24 @@ SET VERSION=3.0
 SET VR=30
 SET OSD=windows
 SET PREC=HALF
+SET THREADS=160
 
 :loop
 IF NOT "%1"=="" (
     IF "%1"=="-p" (
         SET PREC=%2
         SHIFT
+    ) ELSE IF "%1"=="-t" (
+        SET THREADS=%2
+        SHIFT
     ) ELSE (
         :usage
         echo Usage: %0
         echo
-        echo    -p   Use precision FLOAT/HALF/INT8
+        echo    -p   Use precision FLOAT/HALF/INT8.
+        echo "  -t   Threads per GPU/CPU cores.
         echo
-        echo Exampel: install.bat -p INT8
+        echo Example: install.bat -p INT8 - t 160
         exit /b
     )
     SHIFT
@@ -31,7 +36,11 @@ IF %ERRORLEVEL% NEQ 0 (
 ) ELSE (
   SET GPU=1
   SET DEV=gpu
-  SET mt=128
+  IF %NUMBER_OF_PROCESSORS% == 1 (
+     SET mt=%THREADS% / 2
+  ) ELSE (
+     SET mt=%THREADS%
+  )
 )
 
 SET EGBB=nnprobe-%OSD%-%DEV%
